@@ -55,6 +55,7 @@ SUPABASE_SECRET_KEY=...
 
 Project documentation (TV setup, ERP plan, changelog, SQL scripts) is in [doc/](doc/), written in Italian (product's target market):
 
+- [architettura.html](doc/architettura.html) — technical architecture overview (stack, folder structure, data model, tech debt)
 - [avvio-locale.html](doc/avvio-locale.html) — local setup guide
 - [setup-tv.html](doc/setup-tv.html) — foyer screen physical setup (Raspberry Pi / Fire TV Stick)
 - [piano-erp-teatro.html](doc/piano-erp-teatro.html) — detailed technical roadmap by phase

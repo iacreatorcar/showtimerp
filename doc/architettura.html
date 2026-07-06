@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Showtime ERP — Architettura</title>
+<style>
+body{font-family:sans-serif;max-width:950px;margin:40px auto;line-height:1.6;padding:0 20px;color:#1a1a2e}
+code{background:#f4f4f4;padding:2px 6px;border-radius:4px;font-size:14px}
+pre{background:#1a1a2e;color:#eee;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px}
+h1{border-bottom:2px solid #1a1a2e;padding-bottom:8px}
+h2{margin-top:36px;border-left:4px solid #d4af37;padding-left:12px}
+h3{margin-top:22px}
+table{border-collapse:collapse;width:100%;margin:14px 0}
+th,td{border:1px solid #ccc;padding:9px;text-align:left;font-size:13.5px;vertical-align:top}
+th{background:#f5f5f5}
+.hero{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#d4af37;padding:24px;border-radius:8px;margin-bottom:24px}
+.hero p{color:#ccc;margin-top:6px}
+.warn{background:#fff3cd;border-left:4px solid #ffc107;padding:12px 16px;margin:16px 0}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<h1 style="border:none;color:#d4af37;margin:0">🏗️ Architettura — Showtime ERP</h1>
+<p>Panoramica tecnica per chi riprende o estende il progetto</p>
+</div>
+
+<h2>Stack</h2>
+<table>
+<tr><th>Layer</th><th>Tecnologia</th><th>Note</th></tr>
+<tr><td>Framework</td><td>Next.js 16, App Router, Turbopack</td><td>Tutte le pagine sono client component con <code>dynamic(..., {'{ ssr: false }'})</code> — SSR disabilitato ovunque (vedi warning sotto)</td></tr>
+<tr><td>UI</td><td>React 19 + Tailwind CSS</td><td>Nessun component library esterna, stile custom per pagina</td></tr>
+<tr><td>Database</td><td>Supabase (Postgres)</td><td>Accesso diretto da client browser via <code>@supabase/supabase-js</code>, nessuna API route Next.js</td></tr>
+<tr><td>Storage foto</td><td>URL esterni</td><td>Non c'è upload/Supabase Storage: si incollano URL immagine già ospitate altrove</td></tr>
+<tr><td>Auth</td><td>Password singola hardcoded</td><td><code>ADMIN_PASSWORD = '1234'</code> in <code>AdminDashboard.tsx</code> — <strong>non è autenticazione reale</strong>, da sostituire prima di produzione seria</td></tr>
+<tr><td>Hosting</td><td>Netlify</td><td>Deploy automatico da push su <code>main</code>, plugin Next.js runtime automatico</td></tr>
+<tr><td>Analytics</td><td>Microsoft Clarity</td><td>Script iniettato in <code>layout.tsx</code> root, tutte le pagine</td></tr>
+</table>
+
+<div class="warn">
+<strong>Nota architetturale importante:</strong> non esistono API routes (<code>src/app/api</code> vuoto). Ogni scrittura al database avviene <strong>lato client</strong> con la chiave <code>anon</code> Supabase. Questo funziona solo perché le tabelle non hanno Row Level Security (RLS) attiva — chiunque col link del sito può leggere/scrivere tutte le tabelle. Va sistemato prima di trattare dati sensibili o multi-cliente.
+</div>
+
+<h2>Struttura cartelle</h2>
+<pre>src/
+├── app/                          # routing Next.js (App Router)
+│   ├── layout.tsx                # root layout, font, Clarity script
+│   ├── page.tsx                  # home pubblica (tab Artisti/Palinsesto/Admin)
+│   ├── artists/page.tsx          # → ArtistsGrid
+│   ├── schedule/page.tsx         # → ScheduleList
+│   ├── tv/page.tsx               # → TVScreenClient (fullscreen, ?screen=1-4)
+│   ├── welcome/page.tsx          # landing page marketing (standalone, no nav)
+│   ├── admin/page.tsx            # → AdminDashboard (pannello unico)
+│   └── admin/artistico/page.tsx  # → ArtisticDashboard (dashboard a reparti)
+│
+├── components/                   # tutta la logica UI + data-fetching
+│   ├── Header.tsx, NavTabs.tsx    # layout home pubblica
+│   ├── ScheduleList.tsx           # palinsesto pubblico + modal scheda/slide
+│   ├── ArtistsGrid.tsx            # artisti pubblico + modal scheda/slide
+│   ├── ScreenContentManager.tsx   # gestione contenuti TV Foyer (usato in 2 admin)
+│   ├── LedWallPanel.tsx           # gestione LED wall (usato in 2 admin)
+│   ├── TVScreenClient.tsx         # rendering fullscreen singolo schermo
+│   │
+│   ├── AdminDashboard.tsx         # admin "storico": form add/edit/delete inline,
+│   │                              #   password gate, tutte le sezioni in una pagina
+│   │
+│   ├── ArtisticDashboard.tsx      # admin "nuovo": sidebar accordion, sezioni
+│   │                              #   demo (dati finti) + sezioni reali innestate
+│   ├── ProductionsPanel.tsx       # dashboard iniziale (calendario/cast/produzioni demo)
+│   ├── BudgetPanel.tsx            # card budget (demo, riusata in ArtisticDashboard)
+│   ├── ShowsManager.tsx           # CRUD spettacoli standalone (bianco, per ArtisticDashboard)
+│   ├── ArtistsManager.tsx         # CRUD artisti standalone (bianco, per ArtisticDashboard)
+│   ├── ShowGalleryManager.tsx     # galleria foto per spettacolo (admin)
+│   ├── ArtistGalleryManager.tsx   # galleria foto per artista (admin)
+│   ├── NewShowModal.tsx           # modal 4 tab: nuovo spettacolo (Base/Cast/Tecnico/Bigl.)
+│   ├── NewArtisticPlanModal.tsx   # modal 3 tab: pianificazione artistica
+│   └── ArtistQuickAddModal.tsx    # modal rapido: aggiungi cast dal Dashboard
+│
+└── lib/
+    ├── supabase.ts                # client Supabase (istanza singola, anon key)
+    └── types.ts                   # tipi TypeScript = specchio schema tabelle
+</pre>
+
+<div class="warn">
+<strong>Duplicazione nota:</strong> esistono <em>due</em> pannelli admin paralleli (<code>AdminDashboard</code> e <code>ArtisticDashboard</code>) che scrivono sulle stesse tabelle Supabase con form diversi. È una scelta deliberata per la fase di test/decisione con cliente (vedi <a href="changelog.html">changelog.html</a>), ma va consolidato in una versione sola prima del lancio definitivo — altrimenti si rischia divergenza di comportamento tra le due UI.
+</div>
+
+<h2>Modello dati (Supabase)</h2>
+<table>
+<tr><th>Tabella</th><th>Colonne chiave</th><th>Usata da</th></tr>
+<tr><td><code>shows</code></td><td>id, title, date, description, status</td><td>ScheduleList, AdminDashboard, ShowsManager, NewShowModal, NewArtisticPlanModal (scrive qui, non tabella dedicata)</td></tr>
+<tr><td><code>show_photos</code></td><td>id, show_id (FK), url, sort_order</td><td>ShowGalleryManager (admin), ScheduleList (slide pubblica)</td></tr>
+<tr><td><code>artists</code></td><td>id, name, role, bio, photo_url, photo_fit, show_id</td><td>ArtistsGrid, AdminDashboard, ArtistsManager, ArtistQuickAddModal</td></tr>
+<tr><td><code>artist_photos</code></td><td>id, artist_id (FK), url, sort_order</td><td>ArtistGalleryManager (admin), ArtistsGrid (slide pubblica)</td></tr>
+<tr><td><code>screen_content</code></td><td>id, title, description, image_url, format, fit, screen_id (1-4), active</td><td>ScreenContentManager, TVScreenClient</td></tr>
+<tr><td><code>print_content</code></td><td>id, title, description, image_url</td><td>PrintSection (dentro AdminDashboard)</td></tr>
+<tr><td><code>videos</code> <em>(tipo definito, tabella inutilizzata)</em></td><td>id, show_id, artist_id, format, url</td><td>Nessuno — sezione Video pubblica rimossa, tipo rimasto morto in <code>types.ts</code></td></tr>
+</table>
+
+<p><strong>Nota su <code>NewArtisticPlanModal</code> e <code>NewShowModal</code>:</strong> i campi extra (sala, cast, budget, prezzi biglietto, KPI...) non hanno colonne dedicate — vengono serializzati come testo dentro <code>shows.description</code>. Funziona per la demo ma non è interrogabile/strutturato: quando si passa a dati reali va creato uno schema con tabelle dedicate (vedi <a href="piano-erp-teatro.html">piano-erp-teatro.html</a>, Fase 1-4).</p>
+
+<h2>Flusso pagine pubbliche</h2>
+<pre>Utente → "/" (Home)
+           ├─ tab "Artisti"     → ArtistsGrid ──fetch──→ artists + artist_photos
+           ├─ tab "Palinsesto"  → ScheduleList ─fetch──→ shows + show_photos
+           └─ tab "Admin"       → AdminDashboard (password gate)
+
+Schermo foyer → "/tv?screen=N" → TVScreenClient ──poll ogni 5s──→ screen_content (screen_id=N, active=true)
+</pre>
+
+<h2>Flusso admin</h2>
+<pre>/admin              → AdminDashboard
+                        ├─ form Spettacoli (add/edit/delete) → shows
+                        ├─ form Artisti (add/edit/delete)    → artists
+                        ├─ PrintSection                       → print_content
+                        ├─ ArtistLinkSection (QR/link condivisione scheda artista)
+                        ├─ ProductionsPanel (demo + modali reali agganciati)
+                        ├─ ShowGalleryManager                 → show_photos
+                        ├─ ArtistGalleryManager                → artist_photos
+                        └─ ScreenContentManager                → screen_content
+
+/admin/artistico    → ArtisticDashboard (sidebar accordion, no password gate)
+                        ├─ Dashboard         → ProductionsPanel (demo + modali)
+                        ├─ Pianificazione Op. → demo cards + modal NewShowModal
+                        ├─ Pianificazione Art.→ demo cards + modal NewArtisticPlanModal
+                        ├─ Personale/Cast/Materiali → demo statico, non collegato
+                        ├─ Digital Signage    → ScreenContentManager (reale)
+                        ├─ LED Wall           → LedWallPanel (reale)
+                        ├─ Artisti            → ArtistsManager (reale, CRUD)
+                        ├─ Spettacoli         → ShowsManager (reale, CRUD)
+                        ├─ Archivi            → placeholder "in sviluppo"
+                        ├─ Biglietteria       → demo statico
+                        └─ Amministrazione    → BudgetPanel (demo) + card Revenue (demo)
+</pre>
+
+<h2>Convenzioni di codice osservate</h2>
+<ul>
+<li>Ogni pagina <code>app/*/page.tsx</code> è un thin wrapper che importa dinamicamente (<code>next/dynamic</code>, <code>ssr:false</code>) il componente reale da <code>components/</code></li>
+<li>Fetch dati sempre in <code>useEffect</code> + funzione <code>async function fetchX()</code> locale al componente, nessun layer di data-fetching condiviso (no React Query/SWR)</li>
+<li>Form: pattern misto — alcuni usano <code>FormData</code> da <code>e.currentTarget</code> (catturato <strong>prima</strong> di ogni <code>await</code>, per via del bug di nullificazione di React sugli eventi sintetici), altri usano <code>useState</code> controllato per campo</li>
+<li>Stile: quasi tutto Tailwind inline, due "temi" cromatici convivono — slate/pink (UI storica) e navy/gold <code>#1a1a2e</code>/<code>#d4af37</code> (nuova ERP UI)</li>
+</ul>
+
+<h2>Debiti tecnici principali (in ordine di priorità)</h2>
+<ol>
+<li><strong>Sicurezza</strong>: password admin hardcoded, nessuna RLS su Supabase → sostituire con Supabase Auth + ruoli (Fase 0 del piano ERP)</li>
+<li><strong>Duplicazione admin</strong>: consolidare <code>AdminDashboard</code> e <code>ArtisticDashboard</code> in un'unica interfaccia prima del lancio</li>
+<li><strong>Dati demo non collegati</strong>: Personale, Cast & Audizioni, Materiali, Biglietteria, gran parte di Pianificazione Operativa/Artistica mostrano numeri finti — da collegare a tabelle reali</li>
+<li><strong>Campi extra serializzati in testo</strong>: dati strutturati (sala, budget, cast assegnato) oggi vivono dentro <code>description</code> come stringa — normalizzare in colonne/tabelle quando si passa a uso reale</li>
+<li><strong>Upload immagini</strong>: oggi solo URL esterni incollati, nessun upload diretto — aggiungere Supabase Storage se serve caricare foto senza hosting esterno</li>
+</ol>
+
+<h2>Documenti correlati</h2>
+<ul>
+<li><a href="piano-erp-teatro.html">piano-erp-teatro.html</a> — roadmap tecnica a fasi (ruoli, calendario, contratti, budget, biglietteria)</li>
+<li><a href="roadmap-showtime-erp.html">roadmap-showtime-erp.html</a> — roadmap di prodotto (target, modello commerciale, versioni)</li>
+<li><a href="changelog.html">changelog.html</a> — storico modifiche sessione per sessione</li>
+</ul>
+
+</body>
+</html>

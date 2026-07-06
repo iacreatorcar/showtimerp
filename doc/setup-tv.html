@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Setup TV - Teatro Italia Show Lab</title>
+<title>Setup TV - Showtime ERP</title>
 <style>
 body{font-family:sans-serif;max-width:800px;margin:40px auto;line-height:1.6;padding:0 20px}
 code,pre{background:#f4f4f4;padding:2px 6px;border-radius:4px}
@@ -32,12 +32,13 @@ https://tuosito.netlify.app/tv?screen=4</pre>
 <h2>Opzioni hardware</h2>
 <table>
 <tr><th>Opzione</th><th>Costo indicativo</th><th>Pro</th><th>Contro</th></tr>
-<tr><td>Raspberry Pi 4/5 + Chromium kiosk</td><td>60-80€/pz</td><td>Stabile 24/7, no standby/aggiornamenti automatici</td><td>Setup iniziale più tecnico</td></tr>
-<tr><td>Fire TV Stick / Chromecast Google TV + Fully Kiosk Browser</td><td>~40€/pz</td><td>Setup rapido, economico</td><td>Rischio standby/aggiornamenti automatici Android</td></tr>
+<tr><td>Raspberry Pi 4/5 + Chromium kiosk</td><td>60-80€/pz</td><td>Stabile 24/7, no standby/aggiornamenti automatici, basso consumo</td><td>Setup iniziale più tecnico</td></tr>
+<tr><td>Fire TV Stick / Chromecast Google TV + Fully Kiosk Browser (dongle)</td><td>~40€/pz</td><td>Setup rapido, economico, si collega direttamente alla porta HDMI della TV</td><td>Rischio standby/aggiornamenti automatici Android</td></tr>
+<tr><td>Mini PC / PC fisso dedicato (Intel NUC o simile)</td><td>150-300€/pz</td><td>Massima affidabilità e potenza, facile da gestire da remoto (RDP/TeamViewer), nessun limite hardware Android</td><td>Costo più alto, ingombro maggiore, serve alimentazione e spazio vicino alla TV</td></tr>
 </table>
 
 <div class="note">
-<strong>Consiglio:</strong> Raspberry Pi per uso continuativo (h24, no interruzioni). Fire TV Stick va bene per uso saltuario o budget stretto.
+<strong>Consiglio:</strong> Raspberry Pi per uso continuativo con budget contenuto (soluzione consigliata di default). Mini PC/PC fisso se serve gestione remota avanzata o già disponibile in sede. Fire TV Stick/dongle solo per uso saltuario o test rapido.
 </div>
 
 <h2>Setup Raspberry Pi (Chromium kiosk mode)</h2>
@@ -60,6 +61,18 @@ Exec=chromium-browser --noerrdialogs --kiosk --incognito https://tuosito.netlify
 <li>Configura URL di avvio: <code>https://tuosito.netlify.app/tv?screen=1</code></li>
 <li>Attiva modalità kiosk (fullscreen, no barra, autostart al boot)</li>
 <li>Disattiva screensaver/sospensione nelle impostazioni dispositivo</li>
+</ol>
+
+<h2>Setup Mini PC / PC fisso (Windows kiosk mode)</h2>
+<ol>
+<li>Installa Chrome o Edge</li>
+<li>Crea collegamento con parametri kiosk, target tipo:
+<pre>"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --incognito --noerrdialogs https://tuosito.netlify.app/tv?screen=1</pre>
+</li>
+<li>Metti il collegamento nella cartella Esecuzione automatica di Windows (<code>shell:startup</code>) così parte da solo al boot</li>
+<li>Disattiva sospensione/schermo nero: Impostazioni → Sistema → Alimentazione → "Mai" per schermo e sospensione</li>
+<li>Disattiva aggiornamenti automatici Windows in orari di apertura teatro (Group Policy o Impostazioni → Windows Update → Ore attive)</li>
+<li>Consigliato: attiva accesso remoto (RDP o TeamViewer) per gestire il PC senza doverlo raggiungere fisicamente</li>
 </ol>
 
 <h2>Decisione finale</h2>

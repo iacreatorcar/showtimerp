@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Changelog - Teatro Italia Show Lab</title>
+<title>Changelog - Showtime ERP</title>
 <style>
 body{font-family:sans-serif;max-width:800px;margin:40px auto;line-height:1.6;padding:0 20px}
 code{background:#f4f4f4;padding:2px 6px;border-radius:4px}
@@ -14,7 +14,7 @@ ul{margin-top:8px}
 </head>
 <body>
 <h1>Changelog modifiche</h1>
-<p class="date">Ultimo aggiornamento: 2026-07-05</p>
+<p class="date">Ultimo aggiornamento: 2026-07-06</p>
 
 <h2>Deploy</h2>
 <ul>
@@ -61,6 +61,39 @@ ul{margin-top:8px}
 <li><code>artists</code>: aggiunta colonna <code>photo_fit</code> (contain/cover)</li>
 <li>Nuova tabella <code>show_photos</code> (galleria foto spettacoli)</li>
 <li>Nuova tabella <code>artist_photos</code> (galleria foto artisti)</li>
+</ul>
+
+<h2>Rebranding</h2>
+<ul>
+<li>Progetto rinominato in <strong>Showtime ERP</strong> (generico, da clonare/personalizzare per ogni teatro cliente) — header, titolo pagina, sidebar, README</li>
+<li>Repository GitHub rinominato in <code>showtimerp</code>, Netlify collegato automaticamente al nuovo nome</li>
+<li>README riscritto in inglese; documentazione di prodotto (<code>doc/</code>) resta in italiano</li>
+</ul>
+
+<h2>Nuove pagine</h2>
+<ul>
+<li><strong>/welcome</strong> — landing page marketing del prodotto (hero, feature grid, statistiche, footer)</li>
+<li><strong>/artist/[id]</strong> — pagina self-service: l'artista aggiorna la propria foto/bio tramite link personale (bug corretto: la sezione "Link Artisti" in Admin puntava a questa route che non esisteva ancora, dava 404)</li>
+<li><strong>/survey</strong> — questionario feedback pubblico post-spettacolo (12 domande: valutazioni 1-5 su spettacolo/trama/recitazione/scenografia/audio/prezzo/comfort, durata, consiglieresti, aspetti positivi, miglioramenti, email facoltativa)</li>
+</ul>
+
+<h2>Admin — Survey</h2>
+<ul>
+<li>Nuova sezione "📋 Survey Pubblico" in Admin: medie voti, % che consiglierebbe, elenco risposte</li>
+<li>Pulsante QR Code genera immagine da stampare o mostrare a schermo, punta a <code>/survey</code></li>
+<li>4 pulsanti rapidi "TV 1-4" nel modal QR: inviano il QR direttamente su uno schermo Foyer selezionato, senza copiare/incollare URL a mano</li>
+<li>Nuova tabella Supabase <code>feedback</code> con Row Level Security attiva + policy per consentire invio/lettura pubblica (anon)</li>
+</ul>
+
+<h2>Analytics</h2>
+<ul>
+<li>Aggiunto Microsoft Clarity, caricato su tutte le pagine dal layout root (<code>strategy="afterInteractive"</code>, non blocca il caricamento)</li>
+</ul>
+
+<h2>Documentazione</h2>
+<ul>
+<li>Nuovo <a href="architettura.html">architettura.html</a>: stack tecnico, struttura cartelle, modello dati, flussi admin/pubblico, debiti tecnici prioritizzati</li>
+<li>Nuovo <a href="roadmap-showtime-erp.html">roadmap-showtime-erp.html</a>: target di mercato, modello white-label vs licenza SaaS, scheda tecnica, versioni pianificate v1.0→v2.0</li>
 </ul>
 
 <h2>Pianificazione futura</h2>

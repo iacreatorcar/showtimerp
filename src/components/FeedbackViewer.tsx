@@ -22,6 +22,8 @@ function avg(items: Feedback[], key: keyof Feedback) {
 export default function FeedbackViewer() {
   const [items, setItems] = useState<Feedback[]>([])
   const [showQr, setShowQr] = useState(false)
+  const [sending, setSending] = useState<number | null>(null)
+  const [sent, setSent] = useState<number | null>(null)
 
   useEffect(() => {
     load()
@@ -37,6 +39,23 @@ export default function FeedbackViewer() {
     : 0
 
   const surveyUrl = getSurveyUrl()
+
+  async function sendQrToScreen(screenId: number) {
+    setSending(screenId)
+    await supabase.from('screen_content').update({ active: false }).eq('screen_id', screenId).eq('active', true)
+    await supabase.from('screen_content').insert({
+      title: 'Lascia una recensione!',
+      description: 'Inquadra il QR e raccontaci com\'è andata',
+      image_url: getQrUrl(surveyUrl),
+      format: '16:9',
+      fit: 'contain',
+      screen_id: screenId,
+      active: true,
+    })
+    setSending(null)
+    setSent(screenId)
+    setTimeout(() => setSent(null), 2500)
+  }
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg border-l-4 border-pink-600">
@@ -99,7 +118,23 @@ export default function FeedbackViewer() {
             <button onClick={() => setShowQr(false)} className="float-right text-2xl text-pink-600 hover:text-pink-400">✕</button>
             <h3 className="text-xl font-bold text-pink-600 mb-4">QR Survey</h3>
             <img src={getQrUrl(surveyUrl)} alt="QR Survey" className="mx-auto rounded border-4 border-white" />
-            <p className="text-xs text-gray-400 mt-3 break-all">{surveyUrl}</p>
+            <p className="text-xs text-gray-400 mt-3 break-all mb-4">{surveyUrl}</p>
+
+            <p className="text-gray-300 text-sm font-bold mb-2">Invia a schermo TV Foyer</p>
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3, 4].map(n => (
+                <button
+                  key={n}
+                  onClick={() => sendQrToScreen(n)}
+                  disabled={sending === n}
+                  className={`py-2 rounded text-sm font-bold transition ${
+                    sent === n ? 'bg-green-600 text-white' : 'bg-pink-600 text-white hover:bg-pink-700'
+                  } disabled:opacity-50`}
+                >
+                  {sending === n ? '…' : sent === n ? '✓' : `TV ${n}`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
